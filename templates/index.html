@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Python Code Runner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.min.css">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #002b36; 
+            color: #00ff00; 
+            text-align: center;
+        }
+        #editor { 
+            height: 400px; 
+            width: 100%; 
+        }
+        button {
+            padding: 10px 20px;
+            background: #32cd32;
+            color: black;
+            margin: 10px;
+            border-radius: 5px;
+        }
+        #output {
+            background: black;
+            color: #00ff00;
+            padding: 10px;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Python Code Editor</h1>
+    
+    <div id="editor">print("Salom Deepseek!")</div>
+    <input type="text" id="libraries" placeholder="Kutubxonalar (numpy, pandas)">
+    <button onclick="runCode(event)">Run Code</button>
+    <pre id="output"></pre>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.min.js"></script>
+    <script>
+        // Ace Editor sozlash
+        const editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/python");
+
+        async function runCode(event) {
+            event.preventDefault();
+            const code = editor.getValue();
+            const libraries = document.getElementById('libraries').value;
+            const outputEl = document.getElementById('output');
+            outputEl.textContent = "Ishga tushirilmoqda...";
+
+            try {
+                const response = await fetch('/run', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        code: code,
+                        libraries: libraries
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    outputEl.innerHTML = `<span style="color: lime">${result.output}</span>`;
+                } else {
+                    outputEl.innerHTML = `<span style="color: red">${result.error}</span>`;
+                }
+                
+            } catch (error) {
+                outputEl.innerHTML = `<span style="color: red">Xatolik: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>
